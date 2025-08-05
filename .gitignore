@@ -1,0 +1,9 @@
+
+## venv
+.venv
+__pycache__
+.tmp*
+
+
+# configuration file
+config.py
