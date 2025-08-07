@@ -5,8 +5,8 @@ from moby_pipeline.resources import s3
 defs = Definitions(
     jobs=[full_pipeline],
     resources={"s3": s3},
-    # schedules=[
-    #     ScheduleDefinition(job=full_pipeline, cron_schedule="0 1 * * *"),
-    # ],
+    schedules=[
+        ScheduleDefinition(job=full_pipeline, cron_schedule="0 1 * * *"),
+    ],
 )
 
