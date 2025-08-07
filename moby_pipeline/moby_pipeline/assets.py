@@ -100,7 +100,7 @@ spark.stop()
     if result.returncode:
         raise RuntimeError("Spark failed - see log above")
 
-# ---------- single job ----------
+
 @job()
 def full_pipeline():
     spark_process(fetch_to_s3())
