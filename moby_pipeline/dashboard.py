@@ -1,8 +1,8 @@
 import streamlit as st, pymongo, pandas as pd, plotly.express as px, h3
 # h3ronpy.geojson
-from moby_pipeline.config import MONGO_URI
+import config
 
-cli = pymongo.MongoClient(MONGO_URI)
+cli = pymongo.MongoClient(config.MONGO_URI)
 db  = cli["moby"]
 
 st.title("🛴 Moby Dublin – Telemetry Dashboard")
