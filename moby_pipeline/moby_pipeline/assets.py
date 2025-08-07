@@ -1,7 +1,7 @@
 import gzip, io, datetime, subprocess, json, os, requests, pymongo, config
 from dagster import op, job, get_dagster_logger
 
-URL = ("https://data.smartdublin.ie/dublinbikes-api/bikes/mobymoby_dublin/current/bikes.geojson")
+URL = "https://data.smartdublin.ie/dublinbikes-api/bikes/mobymoby_dublin/current/bikes.geojson"
 
 # ---------- op 1: download & push to S3 ----------
 @op(required_resource_keys={"s3"})
@@ -91,7 +91,6 @@ spark.stop()
                     "--packages",AWS_PACKAGES,
                     "--conf", "spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.profile.ProfileCredentialsProvider" ,
                     job_file],  
-                    # check=True,
                     text=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT)
