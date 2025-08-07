@@ -6,7 +6,7 @@ defs = Definitions(
     jobs=[full_pipeline],
     resources={"s3": s3},
     schedules=[
-        ScheduleDefinition(job=full_pipeline, cron_schedule="*/5 * * * *"),
+        ScheduleDefinition(job=full_pipeline, cron_schedule="*/2 * * * *"),
     ],
 )
 

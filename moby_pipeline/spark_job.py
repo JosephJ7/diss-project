@@ -3,7 +3,7 @@ from pyspark.sql.window import Window
 import pymongo, json, config, h3
 
 spark = (SparkSession.builder.appName("nightly").config("spark.hadoop.fs.s3a.fast.upload", "true").config("spark.mongodb.write.connection.uri", "mongodb+srv://sparkuser:sparkpassword@advp.xqmcaw4.mongodb.net/").getOrCreate())
-raw = spark.read.json("s3a://diss-raw-anj/moby/raw/2025/08/07/08/05.json.gz")
+raw = spark.read.json("s3a://diss-raw-anj/moby/raw/2025/08/07/10/36.json.gz")
 
 features = (raw
             .selectExpr("explode(features) AS f")               
