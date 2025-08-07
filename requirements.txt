@@ -19,3 +19,4 @@ streamlit==1.44.1
 pyspark==3.5.1
 apache-sedona==1.5.1
 boto3==1.40.2
+h3==4.3.0

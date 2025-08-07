@@ -13,7 +13,7 @@ def fetch_to_s3(context):
     context.resources.s3.get_client().upload_fileobj(buf,
         Bucket=config.S3_BUCKET, Key=key)
     context.log.info(f"↑  s3://{config.S3_BUCKET}/{key}")
-    return f"s3://{config.S3_BUCKET}/{key}"
+    return f"s3a://{config.S3_BUCKET}/{key}"
 
 # ---------- op 2: Spark job (local) ----------
 @op

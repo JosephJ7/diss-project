@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession, functions as F
 import pymongo, json, config, h3
 
 spark = (SparkSession.builder.appName("nightly").getOrCreate())
-df = spark.read.json("s3://diss-raw-anj/moby/raw/2025/08/07/03/30.json.gz")
+df = spark.read.json("s3://diss-raw-anj/moby/raw/2025/08/07/05/18.json.gz")
 
 silver = (df.select(
             F.col("properties.bike_id").alias("bike_id"),
