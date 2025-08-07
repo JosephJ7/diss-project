@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession, functions as F
 import pymongo, json, config, h3
 
 spark = (SparkSession.builder.appName("nightly").getOrCreate())
-df = spark.read.json("{s3}")
+df = spark.read.json("s3://diss-raw-anj/moby/raw/2025/08/07/03/30.json.gz")
 
 silver = (df.select(
             F.col("properties.bike_id").alias("bike_id"),
@@ -31,11 +31,11 @@ demand = (silver.withColumn("h3",to_h3("lat","lon")).groupBy("h3").count())
 idle = silver.filter((F.col("range_m")<config.MAX_RANGE_M*0.05))
 
 # ---- write everything to Mongo ----
-cli = pymongo.MongoClient("{mongo}")
-cli.moby.telemetry.insert_many(json.loads(silver.toJSON().collect().__str__()))
-cli.moby.decay_summary.delete_many({{}}); 
-cli.moby.decay_summary.insert_many(json.loads(decay.toJSON().collect().__str__()))
-cli.moby.h3_demand.delete_many({{}});      
+cli = pymongo.MongoClient("mongodb+srv://sparkuser:sparkpassword@advp.xqmcaw4.mongodb.net/");
+cli.moby.telemetry.insert_many(json.loads(silver.toJSON().collect().__str__()));
+cli.moby.decay_summary.delete_many({}); 
+cli.moby.decay_summary.insert_many(json.loads(decay.toJSON().collect().__str__()));
+cli.moby.h3_demand.delete_many({});      
 cli.moby.h3_demand.insert_many(json.loads(demand.toJSON().collect().__str__()))
-cli.moby.idle_alerts.delete_many({{}});    
+cli.moby.idle_alerts.delete_many({});    
 cli.moby.idle_alerts.insert_many(json.loads(idle.toJSON().collect().__str__()))
