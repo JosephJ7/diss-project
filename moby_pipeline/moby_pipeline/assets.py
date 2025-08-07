@@ -43,12 +43,14 @@ silver = (features.select(
 w = Window.partitionBy("bike_id").orderBy("ts")
 events = (silver.withColumn("prev_range",F.lag("range_m").over(w))
         .withColumn("prev_ts",F.lag("ts").over(w))
+        .where("prev_range IS NOT NULL")
         .withColumn("d_m",F.col("range_m")-F.col("prev_range"))
         .withColumn("d_h",(F.col("ts").cast("long")-F.col("prev_ts").cast("long"))/3600)
         .where("d_m < 0 AND d_h > 0")
         .withColumn("decay_pct_h",-F.col("d_m")/config.MAX_RANGE_M*100))
-decay = (events.groupBy(F.hour("ts").alias("hour"))
-        .agg(F.avg("decay_pct_h").alias("avg_decay_pct_h")))
+decay = (events.groupBy(F.window("ts", "1 hour").alias("hour"))
+        .agg(F.avg("decay_pct_h").alias("avg_decay_pct_h"))
+        .selectExpr("hour.start AS hour", "avg_decay_pct_h"))
         
 # ---- Analysis 2 : demand heat-map (H3) ----
 @F.udf("string")\n\

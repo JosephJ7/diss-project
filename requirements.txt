@@ -20,3 +20,4 @@ pyspark==3.5.1
 apache-sedona==1.5.1
 boto3==1.40.2
 h3==4.3.0
+h3ronpy==0.22.0
