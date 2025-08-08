@@ -2,11 +2,10 @@
 
 > **An end‑to‑end data & analytics stack** that ingests real‑time scooter telemetry from the Moby fleet in Dublin, processes it with Apache Spark, schedules jobs with Dagster, stores aggregates as Parquet on AWS S3 and in MongoDB, and surfaces insights through a Streamlit dashboard.
 
-<p align="center">
+<!-- <p align="center">
   <img width="80%" src="docs/architecture.svg" alt="Platform architecture"/>
-</p>
+</p> -->
 
----
 
 ## Table of Contents
 
@@ -19,18 +18,8 @@
 7. [Dashboard Screens](#dashboard-screens)
 8. [License](#license)
 
----
 
 ## Features
-
-### Tech Stack
-
-- **Apache Spark 3.4** – distributed processing (local or YARN)
-- **Python 3.10** – language for ETL, orchestration, and dashboard
-- **Dagster 1.x** – declarative orchestration & asset lineage
-- **MongoDB 7** – low‑latency serving layer for Streamlit
-- **AWS S3** – scalable object store for raw & processed **Parquet**
-- **Streamlit 1.33** (+ PyDeck / Plotly) – interactive telemetry dashboard
 
 | Layer | Highlights |
 |-------|------------|
@@ -41,7 +30,14 @@
 | **Visualization** | Streamlit app with 3 tabs (map, line chart, alert table). |
 | **CI/CD** | Pre‑commit, Ruff, Black; GitHub Actions placeholder for unit tests. |
 
----
+### Tech Stack
+
+- **Apache Spark 3.4** – distributed processing (local or YARN)
+- **Python 3.10** – language for ETL, orchestration, and dashboard
+- **Dagster 1.x** – declarative orchestration & asset lineage
+- **MongoDB 7** – low‑latency serving layer for Streamlit
+- **AWS S3** – scalable object store for raw & processed **Parquet**
+- **Streamlit 1.33** (+ PyDeck / Plotly) – interactive telemetry dashboard
 
 ## Architecture
 
@@ -62,8 +58,6 @@ flowchart TD
   end
   M & S3 --> E[Streamlit dashboard]
 ```
-
----
 
 ## Quick Start
 
@@ -90,7 +84,6 @@ poetry run dagster dev  # http://localhost:3000
 streamlit run dashboard.py          # http://localhost:8501
 ```
 
----
 
 ## Project Structure
 
@@ -107,7 +100,6 @@ streamlit run dashboard.py          # http://localhost:8501
 └── tests/                  # Unit tests
 ```
 
----
 
 ## Configuration
 
@@ -120,7 +112,6 @@ streamlit run dashboard.py          # http://localhost:8501
 
 Environment variables are loaded at runtime via **python‑dotenv** – copy `.env.example` to `.env` and edit.
 
----
 
 ## Running the Pipeline
 
@@ -142,8 +133,6 @@ Each asset writes:
 | H3 demand | `s3://…/h3_demand/` | `h3_demand` |
 | Idle alerts | `s3://…/idle_alerts/` | `idle_alerts` |
 
----
-
 ## Dashboard Screens
 
 | Tab | Visualisation | Data source |
@@ -153,8 +142,6 @@ Each asset writes:
 | **Idle alerts** | Data table | `idle_alerts` |
 
 Screenshots live in **docs/**.
-
----
 
 ## License
 
