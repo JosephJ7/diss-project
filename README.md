@@ -1,90 +1,164 @@
-# Data Mining and Machine Learning Project
+# 🛴 Moby Dublin – Telemetry Platform
 
-This repository encompasses a collection of data mining and machine learning projects aimed at analyzing diverse datasets to extract meaningful insights and build predictive models.
+> **An end‑to‑end data & analytics stack** that ingests real‑time scooter telemetry from the Moby fleet in Dublin, processes it with Apache Spark, schedules jobs with Dagster, stores aggregates as Parquet on AWS S3 and in MongoDB, and surfaces insights through a Streamlit dashboard.
 
-## Table of Contents
+<p align="center">
+  <img width="80%" src="docs/architecture.svg" alt="Platform architecture"/>
+</p>
 
-- [Projects](#projects)
-- [Getting Started](#getting-started)
-- [Installation](#installation)
-- [Usage](#usage)
-- [License](#license)
+---
 
-## Projects
+## Table of Contents
 
-### 1. Bathing Water Quality Analysis
+1. [Features](#features)
+2. [Architecture](#architecture)
+3. [Quick Start](#quick-start)
+4. [Project Structure](#project-structure)
+5. [Configuration](#configuration)
+6. [Running the Pipeline](#running-the-pipeline)
+7. [Dashboard Screens](#dashboard-screens)
+8. [License](#license)
 
-This project involves analyzing bathing water quality data to identify patterns and potential factors affecting water cleanliness in Ireland.
+---
 
-- **Objective**: Assess and visualize the quality of bathing waters across different regions in Ireland.
-- **Techniques Used**: Data cleaning, exploratory data analysis, visualization, clustering, Kmeans.
-- **Tools**: Python, Pandas, Matplotlib, Seaborn, Scikit-learn.
+## Features
 
-### 2. Job Posting Analysis
+### Tech Stack
 
-This project focuses on analyzing job postings to extract insights about job trends, required skills, and market demand and to find if the postings are real or fake.
+- **Apache Spark 3.4** – distributed processing (local or YARN)
+- **Python 3.10** – language for ETL, orchestration, and dashboard
+- **Dagster 1.x** – declarative orchestration & asset lineage
+- **MongoDB 7** – low‑latency serving layer for Streamlit
+- **AWS S3** – scalable object store for raw & processed **Parquet**
+- **Streamlit 1.33** (+ PyDeck / Plotly) – interactive telemetry dashboard
 
-- **Objective**: Understand job market dynamics by analyzing job postings data.
-- **Techniques Used**: Binary classfication, text preprocessing, exploratory data analysis, Random Forest, GridSearchCV.
-- **Tools**: Python, NLTK, Scikit-learn ,Pandas, Matplotlib, Seaborn.
+| Layer | Highlights |
+|-------|------------|
+| **Ingestion** | Streaming telemetry → **S3 raw zone** via Spark Auto Loader. |
+| **Processing** | Incremental PySpark assets compute KPIs: battery‑decay, demand hotspots (H3), idle‑bike alerts. |
+| **Orchestration** | Dagster assets with hourly/daily sensors; local runs or CI triggers. |
+| **Storage** | Parquet in AWS S3 **and** MongoDB collections for fast dashboard reads. |
+| **Visualization** | Streamlit app with 3 tabs (map, line chart, alert table). |
+| **CI/CD** | Pre‑commit, Ruff, Black; GitHub Actions placeholder for unit tests. |
 
-## Getting Started
+---
 
-To get a local copy up and running, follow these steps.
+## Architecture
 
-### Prerequisites
-
-Ensure you have the following installed:
-
-- Python 3.7 or higher
-- pip package manager
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/<your-username>/Data-mining-and-machine-learning-project.git
+```mermaid
+flowchart TD
+  subgraph Ingestion
+    A[Kafka / CSV] --> B[S3 raw zone]
+  end
+  subgraph Processing
+    B --> C[PySpark silver]
+    C --> D1[Battery‑decay asset]
+    C --> D2[H3 demand asset]
+    C --> D3[Idle‑alert asset]
+  end
+  subgraph Serving
+    D1 & D2 & D3 -->|Mongo sync| M[(MongoDB)]
+    D1 & D2 & D3 -->|Parquet files| S3[(AWS S3)]
+  end
+  M & S3 --> E[Streamlit dashboard]
 ```
-2. Navigate to the project directory:
-```bash
-cd Data-mining-and-machine-learning-project
-```
-3. Create a virtual environment (Python 3.12)
-```bash
-# Create virtual environment using Python 3.12
-python3 -m venv .venv
-```
-4. Activate the virtual environment
-- On macOS/Linux:
 
-  ```bash
-  source .venv/bin/activate
-  ```
-- On Windows:
+---
 
-  ```bash
-  .venv\Scripts\activate
-  ```
-5. Install the required packages:
+## Quick Start
+
+> Prerequisites: **Python 3.10**, a running **MongoDB**, **Spark 3.4** (local), and optional AWS credentials if you want to copy Parquet to S3.
+
 ```bash
+# 1) Clone & set up virtualenv
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+
+# 2) Configure environment (or copy .env.example)
+export MONGO_URI="mongodb://localhost:27017/moby"
+export AWS_ACCESS_KEY_ID=…          # only if writing to S3
+export AWS_SECRET_ACCESS_KEY=…
+export MAPBOX_TOKEN="pk.xxx"        # optional, nicer map tiles
+
+# 3) Materialise an asset (example: demand hotspots)
+poetry run dagster job run -m moby_pipeline.assets -j h3_demand_job
+
+# 4) Launch Dagster UI (optional)
+poetry run dagster dev  # http://localhost:3000
+
+# 5) Start the dashboard
+streamlit run dashboard.py          # http://localhost:8501
 ```
 
-### Usage
+---
 
-Each project is contained within its respective Jupyter Notebook. To explore and run the analyses:
-1. Launch Jupyter Notebook:
+## Project Structure
+
+```
+├── moby_pipeline/          # Spark transforms & Dagster assets
+│   ├── __init__.py
+│   ├── assets.py           # KPI asset definitions (battery‑decay, H3 demand, idle alerts)
+│   ├── spark_utils.py      # helper functions / window specs
+│   └── config.py           # shared constants (MAX_RANGE_M, etc.)
+├── dashboard.py            # Streamlit UI (3 tabs)
+├── docs/                   # SVG diagrams & screenshots
+├── requirements.txt        # Python deps
+├── .env.example            # Template for environment vars
+└── tests/                  # Unit tests
+```
+
+---
+
+## Configuration
+
+| Variable | Purpose |
+|----------|---------|
+| `MONGO_URI` | Mongo connection string (`mongodb://host:port/db`). |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credentials for writing Parquet to S3. |
+| `MAPBOX_TOKEN` | Mapbox key for high‑resolution tiles (optional). |
+| `SPARK_MASTER` | Override Spark master URL (defaults to `local[*]`). |
+
+Environment variables are loaded at runtime via **python‑dotenv** – copy `.env.example` to `.env` and edit.
+
+---
+
+## Running the Pipeline
+
+Using **Dagster**:
+
 ```bash
-jupyter notebook
-```
-2. Open the desired notebook (e.g., bathing_water_quality.ipynb or job_posting_analysis.ipynb).
+# Materialise a single asset
+poetry run dagster job run -m moby_pipeline.assets -j battery_decay_job
 
-3. Run the cells sequentially to execute the analysis.
+# Or launch Dagster UI
+poetry run dagster dev
+```
+
+Each asset writes:
+
+| Asset | S3 path (Parquet) | MongoDB collection |
+|-------|-------------------|--------------------|
+| Battery‑decay | `s3://…/battery_decay/` | `battery_decay` |
+| H3 demand | `s3://…/h3_demand/` | `h3_demand` |
+| Idle alerts | `s3://…/idle_alerts/` | `idle_alerts` |
+
+---
+
+## Dashboard Screens
+
+| Tab | Visualisation | Data source |
+|-----|---------------|-------------|
+| **Demand map** | Hex‑map (`pydeck.H3HexagonLayer`) | `h3_demand` |
+| **Battery decay** | Line chart (Plotly) | `battery_decay` |
+| **Idle alerts** | Data table | `idle_alerts` |
+
+Screenshots live in **docs/**.
+
+---
 
 ## License
 
-This project is licensed under the [Creative Commons Attribution 4.0 International License (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/).
-
+Released under the **MIT License**. See [LICENSE](LICENSE) for full text.
 
 
 ## 🙋‍♂️ Author
@@ -97,4 +171,3 @@ This project is licensed under the [Creative Commons Attribution 4.0 Internation
 For feedback, issues, or suggestions:  
 📧 josephjacobie2001@gmail.com  
 📁 Or create an [issue](https://github.com/JosephJ7/crimedetection-AYS/issues)
-
