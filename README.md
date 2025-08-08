@@ -41,7 +41,7 @@ flowchart TD
     A[API] --> S3[(AWS S3)]
   end
   subgraph Processing
-    B --> C[PySpark silver]
+    S3 --> C[PySpark silver]
     C --> D1[Battery‑decay asset]
     C --> D2[H3 demand asset]
     C --> D3[Idle‑alert asset]
@@ -49,7 +49,7 @@ flowchart TD
   subgraph Serving
     D1 & D2 & D3 -->|Mongo sync| M[(MongoDB)]
   end
-  M & S3 --> E[Streamlit dashboard]
+  M --> E[Streamlit dashboard]
 ```
 
 ## Quick Start
