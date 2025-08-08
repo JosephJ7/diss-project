@@ -36,29 +36,29 @@
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
   %% Ingestion layer
   subgraph Ingestion ["Ingestion"]
-    direction TB
-    API[(REST Telemetry API)] --> S3raw[S3 / raw zone]
+    API[REST API] --> S3raw[(S3 / raw zone)]
   end
 
   %% Processing layer
   subgraph Processing ["Processing (Apache Spark)"]
-    direction TB
-    S3raw --> Bronze[🟫 bronze table]
-    Bronze --> Silver[⬜ silver table]
+    S3raw --> C[PySpark silver]
     Silver --> Battery[Battery‑decay asset]
     Silver --> Demand[H3 demand asset]
     Silver --> Idle[Idle‑alert asset]
   end
 
-  %% Serving layer
-  subgraph Serving ["Serving"]
+  %% Storage layer
+  subgraph Storage ["Storage"]
     Battery & Demand & Idle --> Mongo[(MongoDB)]
   end
 
-  Mongo --> Streamlit[Streamlit dashboard]
+  %% Visualizations layer
+  subgraph Visualizations ["Visualizations"]
+    Mongo --> Streamlit[Streamlit dashboard]
+  end
 ```
 
 ## Quick Start
