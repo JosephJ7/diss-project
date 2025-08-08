@@ -37,7 +37,7 @@ silver = (features.select(
             F.col("coordinates")[0].alias("lon"),          
             F.col("coordinates")[1].alias("lat")
         ))
-print("▶︎ silver            :", silver.count())
+
             
 # ---- Analysis 1 : battery-decay KPI ----
 w = Window.partitionBy("bike_id").orderBy("ts")
@@ -48,7 +48,7 @@ events = (silver.withColumn("prev_range",F.lag("range_m").over(w))
         .withColumn("d_h",(F.col("ts").cast("long")-F.col("prev_ts").cast("long"))/3600)
         .where("d_m < 0 AND d_h > 0")
         .withColumn("decay_pct_h",-F.col("d_m")/config.MAX_RANGE_M*100))
-print("▶︎ after the two lags:", events.count())
+
 decay = (events.groupBy(F.window("ts", "1 hour").alias("hour"))
         .agg(F.avg("decay_pct_h").alias("avg_decay_pct_h"))
         .selectExpr("hour.start AS hour", "avg_decay_pct_h"))
