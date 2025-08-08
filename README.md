@@ -28,7 +28,7 @@
 
 - **Apache Spark 3.4** – distributed processing (local or YARN)
 - **Python 3.10** – language for ETL, orchestration, and dashboard
-- **Dagster 1.x** – declarative orchestration & asset lineage
+- **Dagster 1.10** – declarative orchestration & asset lineage
 - **MongoDB 7** – low‑latency serving layer for Streamlit
 - **AWS S3** – scalable object store for raw & processed **Parquet**
 - **Streamlit 1.33** (+ PyDeck / Plotly) – interactive telemetry dashboard
