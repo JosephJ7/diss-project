@@ -2,21 +2,15 @@
 
 > **An end‑to‑end data & analytics stack** that ingests real‑time scooter telemetry from the Moby fleet in Dublin, processes it with Apache Spark, schedules jobs with Dagster, stores aggregates as Parquet on AWS S3 and in MongoDB, and surfaces insights through a Streamlit dashboard.
 
-<!-- <p align="center">
-  <img width="80%" src="docs/architecture.svg" alt="Platform architecture"/>
-</p> -->
-
 
 ## Table of Contents
 
 1. [Features](#features)
 2. [Architecture](#architecture)
 3. [Quick Start](#quick-start)
-4. [Project Structure](#project-structure)
-5. [Configuration](#configuration)
-6. [Running the Pipeline](#running-the-pipeline)
-7. [Dashboard Screens](#dashboard-screens)
-8. [License](#license)
+4. [Configuration](#configuration)
+5. [Running the Pipeline](#running-the-pipeline)
+6. [License](#license)
 
 
 ## Features
@@ -44,7 +38,7 @@
 ```mermaid
 flowchart TD
   subgraph Ingestion
-    A[Kafka / CSV] --> B[S3 raw zone]
+    A[API] --> S3[(AWS S3)]
   end
   subgraph Processing
     B --> C[PySpark silver]
@@ -54,7 +48,6 @@ flowchart TD
   end
   subgraph Serving
     D1 & D2 & D3 -->|Mongo sync| M[(MongoDB)]
-    D1 & D2 & D3 -->|Parquet files| S3[(AWS S3)]
   end
   M & S3 --> E[Streamlit dashboard]
 ```
@@ -85,22 +78,6 @@ streamlit run dashboard.py          # http://localhost:8501
 ```
 
 
-## Project Structure
-
-```
-├── moby_pipeline/          # Spark transforms & Dagster assets
-│   ├── __init__.py
-│   ├── assets.py           # KPI asset definitions (battery‑decay, H3 demand, idle alerts)
-│   ├── spark_utils.py      # helper functions / window specs
-│   └── config.py           # shared constants (MAX_RANGE_M, etc.)
-├── dashboard.py            # Streamlit UI (3 tabs)
-├── docs/                   # SVG diagrams & screenshots
-├── requirements.txt        # Python deps
-├── .env.example            # Template for environment vars
-└── tests/                  # Unit tests
-```
-
-
 ## Configuration
 
 | Variable | Purpose |
@@ -124,24 +101,6 @@ poetry run dagster job run -m moby_pipeline.assets -j battery_decay_job
 # Or launch Dagster UI
 poetry run dagster dev
 ```
-
-Each asset writes:
-
-| Asset | S3 path (Parquet) | MongoDB collection |
-|-------|-------------------|--------------------|
-| Battery‑decay | `s3://…/battery_decay/` | `battery_decay` |
-| H3 demand | `s3://…/h3_demand/` | `h3_demand` |
-| Idle alerts | `s3://…/idle_alerts/` | `idle_alerts` |
-
-## Dashboard Screens
-
-| Tab | Visualisation | Data source |
-|-----|---------------|-------------|
-| **Demand map** | Hex‑map (`pydeck.H3HexagonLayer`) | `h3_demand` |
-| **Battery decay** | Line chart (Plotly) | `battery_decay` |
-| **Idle alerts** | Data table | `idle_alerts` |
-
-Screenshots live in **docs/**.
 
 ## License
 
