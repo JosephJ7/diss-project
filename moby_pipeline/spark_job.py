@@ -3,7 +3,7 @@ from pyspark.sql.window import Window
 import pymongo, json, config, h3
 
 spark = (SparkSession.builder.appName("nightly").config("spark.hadoop.fs.s3a.fast.upload", "true").config("spark.mongodb.write.connection.uri", "mongodb+srv://sparkuser:sparkpassword@advp.xqmcaw4.mongodb.net/").getOrCreate())
-raw = spark.read.json("s3a://diss-raw-anj/moby/raw/2025/08/07/12/08.json.gz")
+raw = spark.read.json("s3a://diss-raw-anj/moby/raw/2025/08/08/06/26.json.gz")
 
 features = (raw
             .selectExpr("explode(features) AS f")               
@@ -17,7 +17,7 @@ silver = (features.select(
             F.col("coordinates")[0].alias("lon"),          
             F.col("coordinates")[1].alias("lat")
         ))
-
+print("▶︎ silver            :", silver.count())
             
 # ---- Analysis 1 : battery-decay KPI ----
 w = Window.partitionBy("bike_id").orderBy("ts")
@@ -28,6 +28,7 @@ events = (silver.withColumn("prev_range",F.lag("range_m").over(w))
         .withColumn("d_h",(F.col("ts").cast("long")-F.col("prev_ts").cast("long"))/3600)
         .where("d_m < 0 AND d_h > 0")
         .withColumn("decay_pct_h",-F.col("d_m")/config.MAX_RANGE_M*100))
+print("▶︎ after the two lags:", events.count())
 decay = (events.groupBy(F.window("ts", "1 hour").alias("hour"))
         .agg(F.avg("decay_pct_h").alias("avg_decay_pct_h"))
         .selectExpr("hour.start AS hour", "avg_decay_pct_h"))
