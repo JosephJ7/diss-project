@@ -7,9 +7,9 @@
 
 1. [Features](#features)
 2. [Architecture](#architecture)
-3. [Quick Start](#quick-start)
-4. [Configuration](#configuration)
-5. [Running the Pipeline](#running-the-pipeline)
+3. [Quick Start](#quickstart)
+4. [Configuration](#-configuration)
+5. [Running the App](#-running-the-pipeline)
 6. [License](#license)
 
 
@@ -68,11 +68,11 @@ flowchart TD
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/<your-username>/Data-mining-and-machine-learning-project.git
+git clone https://github.com/<your-username>/diss-project.git
 ```
 2. Navigate to the project directory:
 ```bash
-cd Data-mining-and-machine-learning-project
+cd diss-project
 ```
 3. Create a virtual environment (Python 3.10)
 ```bash
