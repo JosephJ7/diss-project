@@ -104,21 +104,26 @@ MONGO_URI = <your-mongoDB-connection-string>
 SPARK_HOME  = r"C:\spark\spark-3.5.5-bin-hadoop3"            
 MAX_RANGE_M = 45000                 
 ```
+| Variable | Purpose |
+|----------|---------|
+| `S3_BUCKET` | Name of your AWS S3 bucket where raw and processed Parquet files are stored. |
+| `MONGO_URI` | Mongo connection string (`mongodb://host:port/db`). |
+| `SPARK_HOME` | Local path to your Spark installation for Windows (e.g., `C:\\spark\\spark-3.5.5-bin-hadoop3`). |
+| `MAX_RANGE_M` | Maximum theoretical scooter range in metres (used for battery-decay KPI).. |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credentials for writing Parquet to S3. |
 
 ## 🧪 Running the App
 
 ### 1. Start the Streamlit Dashboard
 ```bash
-streamlit run .\dashboard\dashboard.py
+streamlit run .\moby_pipeline\dashboard.py
 ```
 
-### 2. Run the Dagster Pipeline (manually or via button in UI)
+### 2. Run the Dagster Pipeline (manually)
 #### To run the pipeline manually:
 ```bash
-dagster job execute -f data_pipeline/project_master.py -j combined_pipeline_job
+dagster job execute -f moby_pipeline/assets.py -j full_pipeline
 ```
-Alternatively, click the "🚀 Run Dagster Job" button from the sidebar in the dashboard to trigger it.
-
 #### To run the pipeline from Dagster UI:
 Start the processor on one terminal.
 ```bash
@@ -129,40 +134,13 @@ On the other terminal , start the Dagster UI using this command:
 dagster-webserver
 ```
 
-
-## Configuration
-
-| Variable | Purpose |
-|----------|---------|
-| `MONGO_URI` | Mongo connection string (`mongodb://host:port/db`). |
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credentials for writing Parquet to S3. |
-| `MAPBOX_TOKEN` | Mapbox key for high‑resolution tiles (optional). |
-| `SPARK_MASTER` | Override Spark master URL (defaults to `local[*]`). |
-
-Environment variables are loaded at runtime via **python‑dotenv** – copy `.env.example` to `.env` and edit.
-
-
-## Running the Pipeline
-
-Using **Dagster**:
-
-```bash
-# Materialise a single asset
-poetry run dagster job run -m moby_pipeline.assets -j battery_decay_job
-
-# Or launch Dagster UI
-poetry run dagster dev
-```
-
 ## License
 
 Released under the **MIT License**. See [LICENSE](LICENSE) for full text.
 
-
 ## 🙋‍♂️ Author
 
 - **Joseph J.** – [GitHub Profile](https://github.com/JosephJ7)
-
 
 ## 📬 Contact
 
