@@ -9,7 +9,7 @@
 2. [Architecture](#architecture)
 3. [Quick Start](#quickstart)
 4. [Configuration](#-configuration)
-5. [Running the App](#-running-the-pipeline)
+5. [Running the App](#-running-the-app)
 6. [License](#license)
 
 
