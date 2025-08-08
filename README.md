@@ -44,7 +44,7 @@ flowchart TD
 
   %% Processing layer
   subgraph Processing ["Processing (Apache Spark)"]
-    S3raw --> C[PySpark silver]
+    S3raw --> Silver[PySpark silver]
     Silver --> Battery[Battery‑decay asset]
     Silver --> Demand[H3 demand asset]
     Silver --> Idle[Idle‑alert asset]
