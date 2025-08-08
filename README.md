@@ -65,25 +65,68 @@ flowchart TD
 
 > Prerequisites: **Python 3.10**, a running **MongoDB**, **Spark 3.4** (local), and optional AWS credentials if you want to copy Parquet to S3.
 
+
+1. Clone the repository:
 ```bash
-# 1) Clone & set up virtualenv
-python -m venv .venv && source .venv/bin/activate
+git clone https://github.com/<your-username>/Data-mining-and-machine-learning-project.git
+```
+2. Navigate to the project directory:
+```bash
+cd Data-mining-and-machine-learning-project
+```
+3. Create a virtual environment (Python 3.10)
+```bash
+# Create virtual environment using Python 3.10
+python3 -m venv .venv
+```
+4. Activate the virtual environment
+- On macOS/Linux:
+
+  ```bash
+  source .venv/bin/activate
+  ```
+- On Windows:
+
+  ```bash
+  .venv\Scripts\activate
+  ```
+5. Install the required packages:
+```bash
 pip install -r requirements.txt
+```
+## 🧰 Configuration
 
-# 2) Configure environment (or copy .env.example)
-export MONGO_URI="mongodb://localhost:27017/moby"
-export AWS_ACCESS_KEY_ID=…          # only if writing to S3
-export AWS_SECRET_ACCESS_KEY=…
-export MAPBOX_TOKEN="pk.xxx"        # optional, nicer map tiles
+Create a file `config.py` and ensure your file is placed inside the first moby_pipeline folder and check the correct  MongoDB configuration :
 
-# 3) Materialise an asset (example: demand hotspots)
-poetry run dagster job run -m moby_pipeline.assets -j h3_demand_job
+```python
+S3_BUCKET = <s3-bucket-name>
+MONGO_URI = <your-mongoDB-connection-string> 
+SPARK_HOME  = r"C:\spark\spark-3.5.5-bin-hadoop3"            
+MAX_RANGE_M = 45000                 
+```
 
-# 4) Launch Dagster UI (optional)
-poetry run dagster dev  # http://localhost:3000
+## 🧪 Running the App
 
-# 5) Start the dashboard
-streamlit run dashboard.py          # http://localhost:8501
+### 1. Start the Streamlit Dashboard
+```bash
+streamlit run .\dashboard\dashboard.py
+```
+
+### 2. Run the Dagster Pipeline (manually or via button in UI)
+#### To run the pipeline manually:
+```bash
+dagster job execute -f data_pipeline/project_master.py -j combined_pipeline_job
+```
+Alternatively, click the "🚀 Run Dagster Job" button from the sidebar in the dashboard to trigger it.
+
+#### To run the pipeline from Dagster UI:
+Start the processor on one terminal.
+```bash
+dagster-daemon run
+```
+On the other terminal , start the Dagster UI using this command:
+```bash
+dagster-webserver
 ```
 
 
