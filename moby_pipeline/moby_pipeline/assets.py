@@ -20,7 +20,7 @@ def fetch_to_s3(context):
 def spark_process(context, s3_path:str):
     code= """from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.window import Window
-import pymongo, json, config, h3
+import config, h3
 
 spark = (SparkSession.builder.appName("nightly").config("spark.hadoop.fs.s3a.fast.upload", "true").config("spark.mongodb.write.connection.uri", "{mongo}").getOrCreate())
 raw = spark.read.json("{s3}")
@@ -35,7 +35,8 @@ silver = (features.select(
             F.to_timestamp("last_updated_dt").alias("ts"),
             F.col("current_range_meters").alias("range_m"),
             F.col("coordinates")[0].alias("lon"),          
-            F.col("coordinates")[1].alias("lat")
+            F.col("coordinates")[1].alias("lat"),
+            F.col("station_id"),
         ))
 
             
@@ -63,6 +64,44 @@ demand = (silver.withColumn("h3",to_h3("lat","lon")).groupBy("h3").count())
 # ---- Analysis 3 : idle / low-range alerts ----
 idle = silver.filter((F.col("range_m")<config.MAX_RANGE_M*0.05))
 
+# ---- Analysis 4 : Station crowding index ----
+crowding = (
+    silver.groupBy("station_id")
+            .agg(F.count("*").alias("bikes"))
+)
+
+# ---- Analysis 6 : Ghost bikes (no update > 6 h) ----
+latest = (
+    silver.withColumn("rn", F.row_number().over(
+                Window.partitionBy("bike_id").orderBy(F.desc("ts"))))
+            .where("rn = 1")
+            .drop("rn")
+)
+ghosts = latest.where(F.col("ts") < F.current_timestamp() - F.expr("INTERVAL 6 HOURS"))
+
+# ---- Analysis 7 : Station churn (last 24 h) ----
+day_cutoff = F.current_timestamp() - F.expr("INTERVAL 24 HOURS")
+
+churn_raw = (
+    silver.where(F.col("ts") >= day_cutoff)
+            .groupBy("station_id")
+            .agg(
+                F.countDistinct("bike_id").alias("distinct_bikes_24h"),
+                F.count("*").alias("events_24h"),
+            )
+)
+
+current_counts = (
+    silver.groupBy("station_id")
+            .agg(F.count("*").alias("current_bikes"))
+)
+
+station_churn = (
+    churn_raw.join(current_counts, "station_id", "left")
+                .withColumn("churn_rate",
+                            F.col("distinct_bikes_24h")/F.col("current_bikes"))
+)
+
 # ---- write everything to Mongo ----
 def write(df, collection:str, mode="append"):
     (df.write
@@ -76,6 +115,10 @@ write(silver , "telemetry")
 write(decay  , "decay_summary", "overwrite")
 write(demand , "h3_demand"   , "overwrite")
 write(idle   , "idle_alerts" , "overwrite")
+write(crowding,      "station_crowding",  "overwrite")
+write(ghosts,        "ghost_bikes",       "overwrite")
+write(station_churn, "station_churn",     "overwrite")
+
 
 spark.stop()
     """.format(s3=s3_path, mongo=config.MONGO_URI)
